@@ -1,6 +1,21 @@
+#include <LiquidCrystal.h>
+
+// Rotary Encoder Pins
 #define encoderPinA 3
 #define encoderPinB 4
+
+// Button Pins
 #define buttonPin 2
+
+// LCD Pins
+#define rs 13
+#define en 12
+#define d4 11
+#define d5 10
+#define d6 9
+#define d7 8
+
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
 volatile int encoderPos = 0;
 int lastEncoderPos = 0;
@@ -17,6 +32,10 @@ void setup() {
 
   attachInterrupt(digitalPinToInterrupt(encoderPinA), encoderInterrupt, CHANGE);
   attachInterrupt(digitalPinToInterrupt(buttonPin), buttonInterrupt, RISING);
+
+  // set up the LCD's number of columns and rows:
+  lcd.begin(16, 2);
+  lcdPrintPosition(0);
 }
 
 void encoderInterrupt() {
@@ -38,6 +57,8 @@ void loop() {
   if (lastEncoderPos != currentEncoderPos) {
     Serial.println(positionToValueMM(currentEncoderPos));
 
+    lcdPrintPosition(currentEncoderPos);
+
     lastEncoderPos = currentEncoderPos;
   }
 }
@@ -52,4 +73,16 @@ float circumferenceFromDiameter(float diameter) {
 
 float mmToInch(float measurement) {
   return measurement * 0.03937;
+}
+
+void lcdPrintPosition(float position) {
+  float positionInMM = positionToValueMM(position);
+  lcd.clear();
+
+  lcd.print(String(positionInMM, 3));
+  lcd.print(" mm");
+
+  lcd.setCursor(0, 1);
+  lcd.print(String(mmToInch(positionInMM), 3));
+  lcd.print(" in");
 }
